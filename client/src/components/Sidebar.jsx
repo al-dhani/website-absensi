@@ -1,35 +1,69 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { LayoutDashboard, ClipboardList, Users, User, LogOut } from "lucide-react";
 
 export default function Sidebar() {
+  const location = useLocation();
+  
+  const menuItems = [
+    { path: "/admin", icon: LayoutDashboard, label: "Dashboard" },
+    { path: "/admin/attendance", icon: ClipboardList, label: "Data Absensi" },
+    { path: "/admin/students", icon: Users, label: "Data Siswa" },
+    { path: "/admin/pengguna", icon: User, label: "Pengguna" },
+  ];
+
+  const isActive = (path) => location.pathname === path;
+
   return (
-    <div className="w-64 bg-blue-700 text-white min-h-screen p-5">
-      <h2 className="text-2xl font-bold mb-6">ADMIN ABSENSI</h2>
+    <div className="w-64 bg-gradient-to-b from-blue-800 to-blue-900 text-white min-h-screen flex flex-col shadow-2xl">
+      {/* Header */}
+      <div className="p-6 border-b border-blue-700">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+            <ClipboardList className="text-blue-800" size={24} />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold">ADMIN</h2>
+            <p className="text-xs text-blue-300">Sistem Absensi</p>
+          </div>
+        </div>
+      </div>
 
-      <nav className="flex flex-col gap-3">
-        <Link to="/admin" className="hover:bg-blue-600 p-2 rounded">
-          Dashboard
-        </Link>
+      {/* Navigation */}
+      <nav className="flex-1 p-4">
+        <div className="space-y-2">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ${
+                  active
+                    ? "bg-white text-blue-800 shadow-lg font-semibold"
+                    : "text-blue-100 hover:bg-blue-700 hover:translate-x-1"
+                }`}
+              >
+                <Icon size={20} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
 
-        <Link to="/admin/attendance" className="hover:bg-blue-600 p-2 rounded">
-          Data Absensi
-        </Link>
-
-        <Link to="/admin/students" className="hover:bg-blue-600 p-2 rounded">
-          Data Siswa
-        </Link>
-
-        <Link to="/admin/pengguna" className="hover:bg-blue-600 p-2 rounded">
-          Pengguna
-        </Link>
-
+      {/* Logout Button */}
+      <div className="p-4 border-t border-blue-700">
         <Link
           to="/"
           onClick={() => localStorage.removeItem("token")}
-          className="bg-red-600 mt-10 p-2 rounded text-center hover:bg-red-700"
+          className="flex items-center justify-center gap-2 bg-red-600 p-3 rounded-lg text-center hover:bg-red-700 transition-all duration-200 hover:shadow-lg font-semibold"
         >
-          Logout
+          <LogOut size={20} />
+          <span>Logout</span>
         </Link>
-      </nav>
+      </div>
     </div>
   );
 }

@@ -9,8 +9,8 @@ export default function Attendance() {
   const [kelasFilter, setKelasFilter] = useState("");
   const [limit, setLimit] = useState(10);
 
-  const [isEditing, setIsEditing] = useState(false); // MODE EDIT
-  const [selectedStatus, setSelectedStatus] = useState({}); // TEMP STORAGE
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState({});
 
   const fetchAbsensi = async () => {
     const res = await api.get("/attendances");
@@ -33,12 +33,10 @@ export default function Attendance() {
     fetchClasses();
   }, []);
 
-  // CHANGE RADIO VALUE
   const handleRadioChange = (id_siswa, status) => {
     setSelectedStatus((prev) => ({ ...prev, [id_siswa]: status }));
   };
 
-  // SAVE ALL UPDATE
   const handleSaveConfirm = async () => {
     try {
       const today = new Date().toISOString().slice(0, 10);
@@ -62,27 +60,40 @@ export default function Attendance() {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+
       <Sidebar />
 
-      <div className="flex-1 p-6 bg-gray-100">
-        <h1 className="text-2xl font-semibold mb-6">DATA KEHADIRAN</h1>
+      <div className="flex-1 p-8">
 
-        {/* FILTER BAR */}
-        <div className="flex justify-between mb-4 items-center">
-          <div className="flex gap-3 items-center">
+        {/* HEADER */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            Data Kehadiran
+          </h1>
+          <p className="text-gray-600">SMKN 12 Jakarta</p>
+        </div>
+
+        {/* CONTROL BAR */}
+        <div className="flex justify-between items-center mb-6">
+
+          {/* Filter kiri */}
+          <div className="flex items-center gap-4">
+
+            {/* Limit */}
             <select
-              className="border px-3 py-2 rounded"
+              className="border-2 border-gray-300 px-4 py-2 rounded-lg bg-white hover:border-blue-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
               value={limit}
               onChange={(e) => setLimit(parseInt(e.target.value))}
             >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={30}>30</option>
+              <option value={10}>10 data</option>
+              <option value={20}>20 data</option>
+              <option value={30}>30 data</option>
             </select>
 
+            {/* Filter kelas */}
             <select
-              className="border px-3 py-2 rounded"
+              className="border-2 border-gray-300 px-4 py-2 rounded-lg bg-white hover:border-purple-500 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
               value={kelasFilter}
               onChange={(e) => setKelasFilter(e.target.value)}
             >
@@ -95,73 +106,97 @@ export default function Attendance() {
             </select>
           </div>
 
-          {/* BUTTON MODE SWITCH */}
+          {/* Tombol Mode */}
           <button
             onClick={() => {
-            if (isEditing) {
-              handleSaveConfirm();
-            } else {
-              // PRELOAD STATUS DARI DATABASE KE RADIO BUTTON
-              const init = {};
-              absensi.forEach((a) => {
-                init[a.id_siswa] = a.kehadiran;
-              });
-              setSelectedStatus(init);
-              setIsEditing(true);
-            }
-          }}
-            className="px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-800"
+              if (isEditing) {
+                handleSaveConfirm();
+              } else {
+                const init = {};
+                absensi.forEach((a) => { init[a.id_siswa] = a.kehadiran; });
+                setSelectedStatus(init);
+                setIsEditing(true);
+              }
+            }}
+            className={`px-6 py-3 rounded-lg text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all font-medium 
+            ${isEditing
+              ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+              : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+            }`}
           >
-            {isEditing ? "Konfirmasi Kehadiran" : "Input Kehadiran"}
+            {isEditing ? "✔️ Konfirmasi Kehadiran" : "📝 Input Kehadiran"}
           </button>
         </div>
 
         {/* TABLE */}
-        <div className="bg-white rounded shadow">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="p-3 text-left">Nama</th>
-                <th className="p-3 text-left">Kelas</th>
-                <th className="p-3 text-left">Kehadiran</th>
-              </tr>
-            </thead>
-            <tbody>
-              {siswaList
-                .filter((s) => (kelasFilter ? s.nama_kelas === kelasFilter : true))
-                .slice(0, limit)
-                .map((s) => (
-                  <tr key={s.id_siswa} className="border-t">
-                    <td className="p-3">{s.nama}</td>
-                    <td className="p-3">{s.nama_kelas}</td>
-                    <td className="p-3">
-                      {isEditing ? (
-                        <div className="flex gap-4">
-                          {["Hadir", "Terlambat", "Sakit", "Izin", "Alpha"].map((st) => (
-                            <label key={st} className="flex gap-1 items-center">
-                              <input
-                                type="radio"
-                                name={`status-${s.id_siswa}`}
-                                value={st}
-                                onChange={() => handleRadioChange(s.id_siswa, st)}
-                                checked={
-                                selectedStatus[s.id_siswa]
-                                  ? selectedStatus[s.id_siswa] === st
-                                  : absensi.find((a) => a.id_siswa === s.id_siswa)?.kehadiran === st
-                              }
-                              />
-                              {st}
-                            </label>
-                          ))}
-                        </div>
-                      ) : (
-                        absensi.find((a) => a.id_siswa === s.id_siswa)?.kehadiran || "-"
-                      )}
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
+        <div className="bg-white shadow-2xl rounded-2xl overflow-hidden border border-gray-100">
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                  <th className="p-4 text-left font-bold">Nama</th>
+                  <th className="p-4 text-left font-bold">Kelas</th>
+                  <th className="p-4 text-left font-bold">Kehadiran</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {siswaList
+                  .filter((s) => (kelasFilter ? s.nama_kelas === kelasFilter : true))
+                  .slice(0, limit)
+                  .map((s, index) => (
+                    <tr
+                      key={s.id_siswa}
+                      className={`border-t ${
+                        index % 2 === 0 ? "bg-gray-50" : "bg-white"
+                      } hover:bg-blue-50 transition-colors`}
+                    >
+                      <td className="p-4 font-medium text-gray-800">{s.nama}</td>
+
+                      <td className="p-4">
+                        <span className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
+                          {s.nama_kelas}
+                        </span>
+                      </td>
+
+                      <td className="p-4">
+                        {isEditing ? (
+                          <div className="flex gap-3">
+
+                            {["Hadir", "Terlambat", "Sakit", "Izin", "Alpha"].map((st) => (
+                              <label
+                                key={st}
+                                className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border-2 border-gray-300 hover:border-blue-500 transition-all cursor-pointer"
+                              >
+                                <input
+                                  type="radio"
+                                  name={`status-${s.id_siswa}`}
+                                  value={st}
+                                  onChange={() => handleRadioChange(s.id_siswa, st)}
+                                  checked={
+                                    selectedStatus[s.id_siswa]
+                                      ? selectedStatus[s.id_siswa] === st
+                                      : absensi.find((a) => a.id_siswa === s.id_siswa)?.kehadiran === st
+                                  }
+                                  className="w-4 h-4"
+                                />
+                                <span className="text-sm font-medium">{st}</span>
+                              </label>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="font-semibold">
+                            {absensi.find((a) => a.id_siswa === s.id_siswa)?.kehadiran || "-"}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+
         </div>
 
         <p className="text-center mt-6 text-gray-500 text-sm">
